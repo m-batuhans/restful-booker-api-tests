@@ -12,7 +12,7 @@ Portfolio project: API test automation for Restful-Booker, where test cases are 
 - Run one class: `mvn -Dtest=ClassName test`
 
 ## Project documents (read before writing any test)
-- `docs/01-ai-generated-cases.md` – raw LLM output. READ ONLY. Never edit, reformat or "fix" this file.
+- `docs/01-ai-generated-cases.md` – raw LLM output. READ ONLY. Never edit, reformat or "fix" this file. Produced only by running `tools/generate_cases.py`; never hand-write or hand-edit it.
 - `docs/02-review.md` – the tester's review decisions (keep / fix / drop + reason) and added cases. The tester owns this file. Do not write review decisions. You may only suggest changes in chat.
 
 ## Hard rules
@@ -21,7 +21,7 @@ Portfolio project: API test automation for Restful-Booker, where test cases are 
 3. **Traceability:** every test implements exactly one case from `docs/02-review.md` and carries its ID in `@DisplayName` and `@Tag`. Do not implement cases that are not in the review file. If you think a case is missing, suggest it in chat instead of adding it.
 4. **Case ID format:** `TC-<AREA>-<NNN>`, areas: AUTH, CREATE, GET, FILTER, UPDATE, DELETE (example: `TC-UPDATE-003`).
 5. **Test data independence:** every test creates the data it needs and does not rely on seeded records or fixed booking IDs. The public instance is shared and resets itself periodically, so shared data makes tests flaky.
-6. **No credentials in code:** base URL, username and password come from `config.properties` locally and from environment variables in CI. `config.properties` must stay in `.gitignore`.
+6. **No credentials in code:** base URL, username and password come from `config.properties` locally and from environment variables in CI. `config.properties` must stay in `.gitignore`. Same rule for `GEMINI_API_KEY`: read from the environment only, never hard-coded or committed.
 7. **Ask before:** installing software, adding a dependency, changing the CI workflow, or running `git push`.
 
 ## Way of working
