@@ -25,6 +25,5 @@ Portfolio project: API test automation for Restful-Booker, where test cases are 
 7. **Ask before:** installing software, adding a dependency, changing the CI workflow, or running `git push`.
 
 ## Way of working
-- Work on one endpoint group per task (e.g. only UPDATE).
 - After each change, explain what you changed and why in 2–3 plain English sentences. The tester must be able to explain every line in an English job interview.
 - Commit messages in English, imperative mood (e.g. "Add TC-CREATE-001 to TC-CREATE-004").
