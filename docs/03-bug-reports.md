@@ -140,7 +140,7 @@ All three use the same setup: create a booking, delete it (confirmed 201), then 
 ```
 PUT https://restful-booker.herokuapp.com/booking/1322
 Content-Type: application/json
-Cookie: token=8a8be25f808b1dc
+Cookie: token=<token>
 
 {
     "firstname": "Jim",
@@ -160,7 +160,7 @@ Cookie: token=8a8be25f808b1dc
 ```
 PATCH https://restful-booker.herokuapp.com/booking/1268
 Content-Type: application/json
-Cookie: token=c01cfe2175f66db
+Cookie: token=<token>
 
 {
     "firstname": "James"
@@ -171,7 +171,7 @@ Cookie: token=c01cfe2175f66db
 **Steps — DELETE (TC-DELETE-004):**
 ```
 DELETE https://restful-booker.herokuapp.com/booking/1015
-Cookie: token=c70a7344ffa3a42
+Cookie: token=<token>
 ```
 **Actual:** `405 Method Not Allowed`
 
