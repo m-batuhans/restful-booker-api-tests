@@ -15,9 +15,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class GetBookingTest extends BaseTest {
 
     @Test
-    @Tag("TC-GET-001")
-    @DisplayName("TC-GET-001: Retrieved booking matches the values sent at creation")
-    void retrievedBookingMatchesCreatedValues() {
+    @Tag("TC-GET-003")
+    @DisplayName("TC-GET-003: Retrieving a booking with Accept: application/json returns the values sent at creation")
+    void retrievedBookingAsJsonMatchesCreatedValues() {
         BookingApi api = new BookingApi(requestSpec);
         BookingPayload payload = BookingPayload.valid();
         int bookingId = api.createBooking(payload.build());
@@ -25,6 +25,7 @@ class GetBookingTest extends BaseTest {
         Response response = given()
                 .log().all()
                 .spec(requestSpec)
+                .accept("application/json")
                 .when()
                 .get("/booking/" + bookingId);
 
@@ -41,9 +42,9 @@ class GetBookingTest extends BaseTest {
     }
 
     @Test
-    @Tag("TC-GET-002")
-    @DisplayName("TC-GET-002: Retrieving a booking with Accept: application/xml returns an XML body with the booking's fields")
-    void retrievedBookingAsXmlContainsFields() {
+    @Tag("TC-GET-004")
+    @DisplayName("TC-GET-004: Retrieving a booking with Accept: application/xml returns an XML <booking> body matching the created values")
+    void retrievedBookingAsXmlMatchesCreatedValues() {
         BookingApi api = new BookingApi(requestSpec);
         BookingPayload payload = BookingPayload.valid();
         int bookingId = api.createBooking(payload.build());
@@ -55,20 +56,24 @@ class GetBookingTest extends BaseTest {
                 .when()
                 .get("/booking/" + bookingId);
 
-        response.then().log().all().statusCode(200);
+        response.then()
+                .log().all()
+                .statusCode(200)
+                .body("firstname", equalTo(payload.currentFirstname()))
+                .body("lastname", equalTo(payload.currentLastname()))
+                .body("totalprice", equalTo(String.valueOf(payload.currentTotalprice())))
+                .body("depositpaid", equalTo(String.valueOf(payload.currentDepositpaid())))
+                .body("bookingdates.checkin", equalTo(payload.currentCheckin()))
+                .body("bookingdates.checkout", equalTo(payload.currentCheckout()))
+                .body("additionalneeds", equalTo(payload.currentAdditionalneeds()));
 
         assertTrue(response.getContentType().contains("xml"), "Expected an XML content type");
-        String body = response.getBody().asString();
-        assertTrue(body.contains(payload.currentLastname()), "XML body should contain the lastname");
-        assertTrue(body.contains(String.valueOf(payload.currentTotalprice())), "XML body should contain the totalprice");
-        assertTrue(body.contains(payload.currentCheckin()), "XML body should contain the checkin date");
-        assertTrue(body.contains(payload.currentCheckout()), "XML body should contain the checkout date");
-        assertTrue(body.contains(payload.currentAdditionalneeds()), "XML body should contain the additionalneeds");
+        assertTrue(response.getBody().asString().trim().startsWith("<booking>"), "Expected <booking> as the root element");
     }
 
     @Test
-    @Tag("TC-GET-003")
-    @DisplayName("TC-GET-003: Retrieving a non-existent booking returns 404")
+    @Tag("TC-GET-005")
+    @DisplayName("TC-GET-005: Retrieving a non-existent booking returns 404")
     void retrievingNonExistentBookingReturns404() {
         BookingApi api = new BookingApi(requestSpec);
         int nonExistentId = api.guaranteedNonExistentId();
@@ -80,5 +85,27 @@ class GetBookingTest extends BaseTest {
                 .get("/booking/" + nonExistentId);
 
         response.then().log().all().statusCode(404);
+    }
+
+    @Test
+    @Tag("TC-GET-006")
+    @DisplayName("TC-GET-006: Retrieving a booking without an Accept header defaults to JSON")
+    void retrievingBookingWithoutAcceptHeaderDefaultsToJson() {
+        BookingApi api = new BookingApi(requestSpec);
+        BookingPayload payload = BookingPayload.valid();
+        int bookingId = api.createBooking(payload.build());
+
+        Response response = given()
+                .log().all()
+                .spec(requestSpec)
+                .when()
+                .get("/booking/" + bookingId);
+
+        response.then()
+                .log().all()
+                .statusCode(200)
+                .body("firstname", equalTo(payload.currentFirstname()))
+                .body("lastname", equalTo(payload.currentLastname()))
+                .body("additionalneeds", equalTo(payload.currentAdditionalneeds()));
     }
 }

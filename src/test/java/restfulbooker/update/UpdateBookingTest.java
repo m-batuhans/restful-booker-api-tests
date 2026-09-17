@@ -117,21 +117,35 @@ class UpdateBookingTest extends BaseTest {
 
     @Test
     @Tag("TC-UPDATE-004")
-    @DisplayName("TC-UPDATE-004: Updating a non-existent booking returns 404")
-    void updateNonExistentBookingReturns404() {
+    @DisplayName("TC-UPDATE-004: Full update with totalprice missing from the body is rejected and the booking is unchanged")
+    void fullUpdateWithoutTotalpriceIsRejectedAndUnchanged() {
         BookingApi api = new BookingApi(requestSpec);
-        int nonExistentId = api.guaranteedNonExistentId();
+        BookingPayload original = BookingPayload.valid();
+        int bookingId = api.createBooking(original.build());
         String token = api.createToken();
+
+        BookingPayload incomplete = BookingPayload.valid().withoutTotalprice();
 
         Response response = given()
                 .log().all()
                 .spec(requestSpec)
                 .cookie("token", token)
-                .body(BookingPayload.valid().build())
+                .body(incomplete.build())
                 .when()
-                .put("/booking/" + nonExistentId);
+                .put("/booking/" + bookingId);
 
-        response.then().log().all().statusCode(404);
+        response.then().log().all().statusCode(400);
+
+        Response verify = given()
+                .log().all()
+                .spec(requestSpec)
+                .when()
+                .get("/booking/" + bookingId);
+
+        verify.then()
+                .log().all()
+                .statusCode(200)
+                .body("totalprice", equalTo(original.currentTotalprice()));
     }
 
     @Test
@@ -173,39 +187,27 @@ class UpdateBookingTest extends BaseTest {
 
     @Test
     @Tag("TC-UPDATE-006")
-    @DisplayName("TC-UPDATE-006: Partial update without auth is rejected and the booking is unchanged")
-    void partialUpdateWithoutAuthIsRejectedAndUnchanged() {
+    @DisplayName("TC-UPDATE-006: Partially updating a non-existent booking returns 404")
+    void partialUpdateOfNonExistentBookingReturns404() {
         BookingApi api = new BookingApi(requestSpec);
-        BookingPayload original = BookingPayload.valid();
-        int bookingId = api.createBooking(original.build());
+        int nonExistentId = api.guaranteedNonExistentId();
+        String token = api.createToken();
 
-        String attemptedBody = """
+        String partialBody = """
                 {
-                    "firstname": "Intruder"
+                    "firstname": "James"
                 }
                 """;
 
         Response response = given()
                 .log().all()
                 .spec(requestSpec)
-                .body(attemptedBody)
+                .cookie("token", token)
+                .body(partialBody)
                 .when()
-                .patch("/booking/" + bookingId);
+                .patch("/booking/" + nonExistentId);
 
-        response.then().log().all();
-        assertTrue(response.statusCode() == 401 || response.statusCode() == 403,
-                "Expected 401 or 403 but got " + response.statusCode());
-
-        Response verify = given()
-                .log().all()
-                .spec(requestSpec)
-                .when()
-                .get("/booking/" + bookingId);
-
-        verify.then()
-                .log().all()
-                .statusCode(200)
-                .body("firstname", equalTo(original.currentFirstname()));
+        response.then().log().all().statusCode(404);
     }
 
     @Test
@@ -242,24 +244,28 @@ class UpdateBookingTest extends BaseTest {
 
     @Test
     @Tag("TC-UPDATE-008")
-    @DisplayName("TC-UPDATE-008: Full update with lastname missing from the body is rejected and the booking is unchanged")
-    void fullUpdateWithoutLastnameIsRejectedAndUnchanged() {
+    @DisplayName("TC-UPDATE-008: Partial update without auth is rejected and the booking is unchanged")
+    void partialUpdateWithoutAuthIsRejectedAndUnchanged() {
         BookingApi api = new BookingApi(requestSpec);
         BookingPayload original = BookingPayload.valid();
         int bookingId = api.createBooking(original.build());
-        String token = api.createToken();
 
-        BookingPayload incomplete = BookingPayload.valid().withoutLastname();
+        String attemptedBody = """
+                {
+                    "firstname": "Intruder"
+                }
+                """;
 
         Response response = given()
                 .log().all()
                 .spec(requestSpec)
-                .cookie("token", token)
-                .body(incomplete.build())
+                .body(attemptedBody)
                 .when()
-                .put("/booking/" + bookingId);
+                .patch("/booking/" + bookingId);
 
-        response.then().log().all().statusCode(400);
+        response.then().log().all();
+        assertTrue(response.statusCode() == 401 || response.statusCode() == 403,
+                "Expected 401 or 403 but got " + response.statusCode());
 
         Response verify = given()
                 .log().all()
@@ -270,6 +276,25 @@ class UpdateBookingTest extends BaseTest {
         verify.then()
                 .log().all()
                 .statusCode(200)
-                .body("lastname", equalTo(original.currentLastname()));
+                .body("firstname", equalTo(original.currentFirstname()));
+    }
+
+    @Test
+    @Tag("TC-UPDATE-009")
+    @DisplayName("TC-UPDATE-009: Updating a non-existent booking returns 404")
+    void updateNonExistentBookingReturns404() {
+        BookingApi api = new BookingApi(requestSpec);
+        int nonExistentId = api.guaranteedNonExistentId();
+        String token = api.createToken();
+
+        Response response = given()
+                .log().all()
+                .spec(requestSpec)
+                .cookie("token", token)
+                .body(BookingPayload.valid().build())
+                .when()
+                .put("/booking/" + nonExistentId);
+
+        response.then().log().all().statusCode(404);
     }
 }

@@ -10,8 +10,10 @@ import restfulbooker.support.BookingPayload;
 import java.util.UUID;
 
 import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.emptyOrNullString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.not;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -59,42 +61,60 @@ class CreateBookingTest extends BaseTest {
 
     @Test
     @Tag("TC-CREATE-002")
-    @DisplayName("TC-CREATE-002: Creating a booking with an XML payload returns an XML body with bookingid and the booking's fields")
-    void createBookingWithXmlPayloadReturnsXmlBody() {
+    @DisplayName("TC-CREATE-002: Creating a booking with an XML payload returns a <created-booking> body matching the request")
+    void createBookingWithXmlPayloadReturnsMatchingCreatedBooking() {
         BookingPayload payload = BookingPayload.valid();
 
         Response response = given()
                 .log().all()
                 .spec(requestSpec)
                 .contentType("text/xml")
-                .accept("application/xml")
                 .body(payload.buildXml())
                 .when()
                 .post("/booking");
 
-        response.then().log().all().statusCode(200);
+        response.then()
+                .log().all()
+                .statusCode(200)
+                .body("bookingid", not(emptyOrNullString()))
+                .body("booking.firstname", equalTo(payload.currentFirstname()))
+                .body("booking.lastname", equalTo(payload.currentLastname()))
+                .body("booking.totalprice", equalTo(String.valueOf(payload.currentTotalprice())))
+                .body("booking.depositpaid", equalTo(String.valueOf(payload.currentDepositpaid())))
+                .body("booking.bookingdates.checkin", equalTo(payload.currentCheckin()))
+                .body("booking.bookingdates.checkout", equalTo(payload.currentCheckout()))
+                .body("booking.additionalneeds", equalTo(payload.currentAdditionalneeds()));
 
         assertTrue(response.getContentType().contains("xml"), "Expected an XML content type");
-        String body = response.getBody().asString();
-        assertTrue(body.contains(payload.currentLastname()), "XML body should contain the lastname");
-        assertTrue(body.contains(payload.currentAdditionalneeds()), "XML body should contain the additionalneeds");
+        assertTrue(response.getBody().asString().contains("<created-booking>"), "Expected <created-booking> as the root element");
     }
 
     @Test
     @Tag("TC-CREATE-003")
-    @DisplayName("TC-CREATE-003: Creating a booking with totalprice 0 stores it as 0")
-    void createBookingWithZeroTotalpriceStoresZero() {
-        BookingPayload payload = BookingPayload.valid().totalprice(0);
+    @DisplayName("TC-CREATE-003: Creating a booking with a URL-encoded payload returns a JSON body matching the request")
+    void createBookingWithUrlEncodedPayloadReturnsMatchingJsonBooking() {
+        BookingPayload payload = BookingPayload.valid();
 
         Response response = given()
                 .log().all()
                 .spec(requestSpec)
-                .body(payload.build())
+                .contentType("application/x-www-form-urlencoded")
+                .body(payload.buildFormEncoded())
                 .when()
                 .post("/booking");
 
-        response.then().log().all().statusCode(200);
-        assertEquals(0, response.jsonPath().getInt("booking.totalprice"));
+        response.then()
+                .log().all()
+                .statusCode(200)
+                .body("booking.firstname", equalTo(payload.currentFirstname()))
+                .body("booking.lastname", equalTo(payload.currentLastname()))
+                .body("booking.totalprice", equalTo(payload.currentTotalprice()))
+                .body("booking.depositpaid", equalTo(payload.currentDepositpaid()))
+                .body("booking.bookingdates.checkin", equalTo(payload.currentCheckin()))
+                .body("booking.bookingdates.checkout", equalTo(payload.currentCheckout()))
+                .body("booking.additionalneeds", equalTo(payload.currentAdditionalneeds()));
+
+        assertTrue(response.getContentType().contains("json"), "Expected a JSON content type");
     }
 
     @Test
@@ -125,7 +145,26 @@ class CreateBookingTest extends BaseTest {
 
     @Test
     @Tag("TC-CREATE-005")
-    @DisplayName("TC-CREATE-005: Creating a booking with totalprice -1 is rejected")
+    @DisplayName("TC-CREATE-005: Creating a booking with an empty additionalneeds stores it as an empty string")
+    void createBookingWithEmptyAdditionalneedsStoresEmptyString() {
+        BookingPayload payload = BookingPayload.valid().additionalneeds("");
+
+        Response response = given()
+                .log().all()
+                .spec(requestSpec)
+                .body(payload.build())
+                .when()
+                .post("/booking");
+
+        response.then()
+                .log().all()
+                .statusCode(200)
+                .body("booking.additionalneeds", equalTo(""));
+    }
+
+    @Test
+    @Tag("TC-CREATE-006")
+    @DisplayName("TC-CREATE-006: Creating a booking with totalprice -1 is rejected")
     void createBookingWithNegativeTotalpriceIsRejected() {
         BookingPayload payload = BookingPayload.valid().totalprice(-1);
 
@@ -140,8 +179,8 @@ class CreateBookingTest extends BaseTest {
     }
 
     @Test
-    @Tag("TC-CREATE-006")
-    @DisplayName("TC-CREATE-006: Creating a booking with a decimal totalprice stores it exactly")
+    @Tag("TC-CREATE-007")
+    @DisplayName("TC-CREATE-007: Creating a booking with a decimal totalprice stores it exactly")
     void createBookingWithDecimalTotalpriceStoresExactValue() {
         BookingPayload payload = BookingPayload.valid().totalprice(150.75);
 
@@ -157,8 +196,8 @@ class CreateBookingTest extends BaseTest {
     }
 
     @Test
-    @Tag("TC-CREATE-007")
-    @DisplayName("TC-CREATE-007: Creating a booking with checkout before checkin is rejected")
+    @Tag("TC-CREATE-008")
+    @DisplayName("TC-CREATE-008: Creating a booking with checkout before checkin is rejected")
     void createBookingWithCheckoutBeforeCheckinIsRejected() {
         BookingPayload payload = BookingPayload.valid().checkin("2026-05-10").checkout("2026-05-01");
 
@@ -173,8 +212,8 @@ class CreateBookingTest extends BaseTest {
     }
 
     @Test
-    @Tag("TC-CREATE-008")
-    @DisplayName("TC-CREATE-008: Creating a booking with a wrong-format checkin date is rejected and nothing is stored")
+    @Tag("TC-CREATE-009")
+    @DisplayName("TC-CREATE-009: Creating a booking with a wrong-format checkin date is rejected and nothing is stored")
     void createBookingWithWrongFormatCheckinIsRejectedAndNotStored() {
         BookingPayload payload = BookingPayload.valid().checkin("17-09-2026");
 

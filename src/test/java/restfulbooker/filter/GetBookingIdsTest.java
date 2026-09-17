@@ -19,14 +19,40 @@ class GetBookingIdsTest extends BaseTest {
 
     @Test
     @Tag("TC-FILTER-001")
-    @DisplayName("TC-FILTER-001: All booking IDs include a newly created booking")
-    void allBookingIdsIncludeCreatedBooking() {
+    @DisplayName("TC-FILTER-001: Filtering by a unique firstname and lastname returns exactly the created booking")
+    void filterByUniqueFirstnameAndLastnameReturnsExactlyOneBooking() {
         BookingApi api = new BookingApi(requestSpec);
-        int bookingId = api.createBooking(BookingPayload.valid().build());
+        String uniqueFirstname = BookingPayload.uniqueValue("Filter");
+        BookingPayload payload = BookingPayload.valid().firstname(uniqueFirstname);
+        int bookingId = api.createBooking(payload.build());
 
         Response response = given()
                 .log().all()
                 .spec(requestSpec)
+                .queryParam("firstname", uniqueFirstname)
+                .queryParam("lastname", payload.currentLastname())
+                .when()
+                .get("/booking");
+
+        response.then().log().all().statusCode(200);
+
+        List<Integer> ids = response.jsonPath().getList("bookingid", Integer.class);
+        assertEquals(List.of(bookingId), ids);
+    }
+
+    @Test
+    @Tag("TC-FILTER-002")
+    @DisplayName("TC-FILTER-002: Filtering by checkin and checkout dates equal to the booking's own dates includes it")
+    void filterByCheckinAndCheckoutEqualToBookingDatesIncludesIt() {
+        BookingApi api = new BookingApi(requestSpec);
+        BookingPayload payload = BookingPayload.valid().checkin("2026-03-10").checkout("2026-03-15");
+        int bookingId = api.createBooking(payload.build());
+
+        Response response = given()
+                .log().all()
+                .spec(requestSpec)
+                .queryParam("checkin", "2026-03-10")
+                .queryParam("checkout", "2026-03-15")
                 .when()
                 .get("/booking");
 
@@ -37,9 +63,23 @@ class GetBookingIdsTest extends BaseTest {
     }
 
     @Test
-    @Tag("TC-FILTER-002")
-    @DisplayName("TC-FILTER-002: Filtering by a unique firstname returns exactly the created booking")
-    void filterByUniqueFirstnameReturnsExactlyOneBooking() {
+    @Tag("TC-FILTER-003")
+    @DisplayName("TC-FILTER-003: Filtering with an invalid checkin date format is rejected")
+    void filterWithInvalidCheckinFormatIsRejected() {
+        Response response = given()
+                .log().all()
+                .spec(requestSpec)
+                .queryParam("checkin", "10-03-2026")
+                .when()
+                .get("/booking");
+
+        response.then().log().all().statusCode(400);
+    }
+
+    @Test
+    @Tag("TC-FILTER-004")
+    @DisplayName("TC-FILTER-004: Filtering by a unique firstname only returns exactly the created booking")
+    void filterByUniqueFirstnameOnlyReturnsExactlyOneBooking() {
         BookingApi api = new BookingApi(requestSpec);
         String uniqueFirstname = BookingPayload.uniqueValue("Filter");
         int bookingId = api.createBooking(BookingPayload.valid().firstname(uniqueFirstname).build());
@@ -58,85 +98,8 @@ class GetBookingIdsTest extends BaseTest {
     }
 
     @Test
-    @Tag("TC-FILTER-003")
-    @DisplayName("TC-FILTER-003: Filtering by a unique lastname returns exactly the created booking")
-    void filterByUniqueLastnameReturnsExactlyOneBooking() {
-        BookingApi api = new BookingApi(requestSpec);
-        BookingPayload payload = BookingPayload.valid();
-        int bookingId = api.createBooking(payload.build());
-
-        Response response = given()
-                .log().all()
-                .spec(requestSpec)
-                .queryParam("lastname", payload.currentLastname())
-                .when()
-                .get("/booking");
-
-        response.then().log().all().statusCode(200);
-
-        List<Integer> ids = response.jsonPath().getList("bookingid", Integer.class);
-        assertEquals(List.of(bookingId), ids);
-    }
-
-    @Test
-    @Tag("TC-FILTER-004")
-    @DisplayName("TC-FILTER-004: Filtering by checkin date equal to the booking's checkin date includes it")
-    void filterByCheckinDateEqualToBookingCheckinIncludesIt() {
-        BookingApi api = new BookingApi(requestSpec);
-        BookingPayload payload = BookingPayload.valid().checkin("2026-03-10").checkout("2026-03-15");
-        int bookingId = api.createBooking(payload.build());
-
-        Response response = given()
-                .log().all()
-                .spec(requestSpec)
-                .queryParam("checkin", "2026-03-10")
-                .when()
-                .get("/booking");
-
-        response.then().log().all().statusCode(200);
-
-        List<Integer> ids = response.jsonPath().getList("bookingid", Integer.class);
-        assertTrue(ids.contains(bookingId));
-    }
-
-    @Test
     @Tag("TC-FILTER-005")
-    @DisplayName("TC-FILTER-005: Filtering by checkout date equal to the booking's checkout date includes it")
-    void filterByCheckoutDateEqualToBookingCheckoutIncludesIt() {
-        BookingApi api = new BookingApi(requestSpec);
-        BookingPayload payload = BookingPayload.valid().checkin("2026-03-10").checkout("2026-03-15");
-        int bookingId = api.createBooking(payload.build());
-
-        Response response = given()
-                .log().all()
-                .spec(requestSpec)
-                .queryParam("checkout", "2026-03-15")
-                .when()
-                .get("/booking");
-
-        response.then().log().all().statusCode(200);
-
-        List<Integer> ids = response.jsonPath().getList("bookingid", Integer.class);
-        assertTrue(ids.contains(bookingId));
-    }
-
-    @Test
-    @Tag("TC-FILTER-006")
-    @DisplayName("TC-FILTER-006: Filtering with an invalid checkin date format is rejected")
-    void filterWithInvalidCheckinFormatIsRejected() {
-        Response response = given()
-                .log().all()
-                .spec(requestSpec)
-                .queryParam("checkin", "10-03-2026")
-                .when()
-                .get("/booking");
-
-        response.then().log().all().statusCode(400);
-    }
-
-    @Test
-    @Tag("TC-FILTER-007")
-    @DisplayName("TC-FILTER-007: Filtering by checkin date one day after the booking's checkin excludes it")
+    @DisplayName("TC-FILTER-005: Filtering by checkin date one day after the booking's checkin excludes it")
     void filterByCheckinDateAfterBookingCheckinExcludesIt() {
         BookingApi api = new BookingApi(requestSpec);
         BookingPayload payload = BookingPayload.valid().checkin("2026-03-10").checkout("2026-03-15");
@@ -156,8 +119,8 @@ class GetBookingIdsTest extends BaseTest {
     }
 
     @Test
-    @Tag("TC-FILTER-008")
-    @DisplayName("TC-FILTER-008: Filtering by checkout date one day after the booking's checkout excludes it")
+    @Tag("TC-FILTER-006")
+    @DisplayName("TC-FILTER-006: Filtering by checkout date one day after the booking's checkout excludes it")
     void filterByCheckoutDateAfterBookingCheckoutExcludesIt() {
         BookingApi api = new BookingApi(requestSpec);
         BookingPayload payload = BookingPayload.valid().checkin("2026-03-10").checkout("2026-03-15");

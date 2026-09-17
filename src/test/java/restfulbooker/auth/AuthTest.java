@@ -59,8 +59,9 @@ class AuthTest extends BaseTest {
 
         response.then().log().all();
 
-        // Policy 4: the documentation does not define a status code for this case, so only the
-        // invariant (no token issued) is asserted. The actual status is recorded, not asserted.
+        // Policy 4: the documentation does not say what a failed login returns, and HTTP rules
+        // do not decide it either. Only the invariant (no token issued) is asserted; the actual
+        // status is recorded, not asserted.
         System.out.println("TC-AUTH-002 observed status code: " + response.statusCode());
 
         assertFalse(response.getBody().asString().contains("\"token\""), "Response must not contain a token field");
@@ -68,16 +69,50 @@ class AuthTest extends BaseTest {
 
     @Test
     @Tag("TC-AUTH-003")
-    @DisplayName("TC-AUTH-003: Empty request body is rejected")
-    void emptyRequestBodyIsRejected() {
+    @DisplayName("TC-AUTH-003: Missing username is rejected")
+    void missingUsernameIsRejected() {
+        String requestBody = """
+                {
+                    "password": "%s"
+                }
+                """.formatted(ConfigLoader.password());
+
         Response response = given()
                 .log().all()
                 .spec(requestSpec)
-                .body("")
+                .body(requestBody)
                 .when()
                 .post("/auth");
 
         response.then().log().all().statusCode(400);
+
+        assertFalse(response.getBody().asString().contains("\"token\""), "Response must not contain a token field");
+    }
+
+    @Test
+    @Tag("TC-AUTH-004")
+    @DisplayName("TC-AUTH-004: Missing Content-Type header does not issue a token")
+    void missingContentTypeHeaderDoesNotIssueToken() {
+        String requestBody = """
+                {
+                    "username": "%s",
+                    "password": "%s"
+                }
+                """.formatted(ConfigLoader.username(), ConfigLoader.password());
+
+        // Deliberately bypasses requestSpec (which sets Content-Type: application/json) so no
+        // Content-Type header is sent at all.
+        Response response = given()
+                .log().all()
+                .baseUri(ConfigLoader.baseUrl())
+                .body(requestBody)
+                .when()
+                .post("/auth");
+
+        response.then().log().all();
+
+        // Policy 4: HTTP allows either 400 or 415 here, so only the invariant is asserted.
+        System.out.println("TC-AUTH-004 observed status code: " + response.statusCode());
 
         assertFalse(response.getBody().asString().contains("\"token\""), "Response must not contain a token field");
     }

@@ -78,8 +78,8 @@ public final class BookingPayload {
         return this;
     }
 
-    public BookingPayload withoutLastname() {
-        this.includeLastname = false;
+    public BookingPayload withoutTotalprice() {
+        this.includeTotalprice = false;
         return this;
     }
 
@@ -166,5 +166,41 @@ public final class BookingPayload {
         }
         xml.append("</booking>");
         return xml.toString();
+    }
+
+    /**
+     * Builds the documented URL-encoded form, e.g. {@code firstname=Jim&bookingdates%5Bcheckin%5D=...}.
+     */
+    public String buildFormEncoded() {
+        StringBuilder form = new StringBuilder();
+        if (includeFirstname) {
+            appendParam(form, "firstname", firstname);
+        }
+        if (includeLastname) {
+            appendParam(form, "lastname", lastname);
+        }
+        if (includeTotalprice) {
+            appendParam(form, "totalprice", totalprice);
+        }
+        if (includeDepositpaid) {
+            appendParam(form, "depositpaid", depositpaid);
+        }
+        if (includeCheckin) {
+            appendParam(form, "bookingdates%5Bcheckin%5D", checkin);
+        }
+        if (includeCheckout) {
+            appendParam(form, "bookingdates%5Bcheckout%5D", checkout);
+        }
+        if (includeAdditionalneeds) {
+            appendParam(form, "additionalneeds", additionalneeds);
+        }
+        return form.toString();
+    }
+
+    private void appendParam(StringBuilder form, String key, Object value) {
+        if (form.length() > 0) {
+            form.append("&");
+        }
+        form.append(key).append("=").append(value);
     }
 }
