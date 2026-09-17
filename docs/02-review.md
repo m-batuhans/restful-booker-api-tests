@@ -8,7 +8,7 @@ Reviewer: Mevlüt Batuhan Saar
 - Keep: 5 · Fix: 23 · Drop: 1
 - Added cases (missed by AI): 10
 - Cases to implement: 38
-- Documentation findings: 8 from the AI (6 confirmed, 1 partly confirmed, 1 reinterpreted), 5 added by reviewer
+- Documentation findings: Gemini listed 6 (4 confirmed, 1 partly confirmed, 1 misread); reviewer added 5
 
 ## Oracle policy
 How the expected result of a test is decided, in this order:
@@ -30,31 +30,31 @@ Rules applied to every test (not counted as changes):
 |---|---|---|---|
 | TC-AUTH-001 | Keep | Documented. | 200 OK; body contains a non-empty `token` string. |
 | TC-AUTH-002 | Fix | The documentation does not say what a failed login returns, and HTTP rules do not decide it. The one thing that must be true: no token is issued. | No `token` field in the response body. Actual status code logged. |
-| TC-AUTH-003 | Fix | `username` is required and the documented example sends it. A missing required field is invalid input → 400. The "default value admin" is an example, not a real default (DOC-11). | 400 Bad Request; no `token` field in the response body. |
+| TC-AUTH-003 | Fix | `username` is required and the documented example sends it. A missing required field is invalid input → 400. The "default value admin" is an example, not a real default (R-3). | 400 Bad Request; no `token` field in the response body. |
 | TC-AUTH-004 | Fix | Without Content-Type the server cannot know the body format. HTTP allows either 400 or 415 here, so the test checks only that no token is issued. | No `token` field in the response body. Actual status code logged. |
-| TC-GET-001 | Drop | `/ping` is already tested by the existing smoke test (`HealthCheckTest`), which expects 201 (DOC-2). It was also filed under the wrong area. | — |
+| TC-GET-001 | Drop | `/ping` is already tested by the existing smoke test (`HealthCheckTest`), which expects 201 (G-1). It was also filed under the wrong area. | — |
 | TC-GET-002 | Keep | Documented. | 200 OK; array of objects with numeric `bookingid`, including the booking created by the test. |
 | TC-GET-003 | Fix | Checking that the fields exist does not prove the data is correct. | 200 OK; JSON body; every field equals the value sent when the booking was created. |
 | TC-GET-004 | Fix | Same as GET-003. The documented XML example has `<booking>` as the root element. | 200 OK; Content-Type header says XML; root element `<booking>`; every field equals the value sent when the booking was created. |
 | TC-GET-005 | Fix | The documentation is silent. HTTP rule: a booking that does not exist → 404. | 404 Not Found. |
-| TC-GET-006 | Fix | Not a negative case. The documentation's own GetBooking example sends no Accept header, and the documented default is application/json. "Optional: no" is an automatic label (DOC-7). Type changed Negative → Positive. | 200 OK; JSON body with the booking's fields. |
+| TC-GET-006 | Fix | Not a negative case. The documentation's own GetBooking example sends no Accept header, and the documented default is application/json. "Optional: no" is an automatic label (G-5). Type changed Negative → Positive. | 200 OK; JSON body with the booking's fields. |
 | TC-FILTER-001 | Fix | "Matching" was not checkable. With a unique firstname and lastname, the exact result is known. | 200 OK; the array contains exactly one item: the created booking's ID. |
 | TC-FILTER-002 | Fix | The documentation says "greater than or equal". The "equal" case is the boundary and was not tested. Scenario changed: both filter dates equal the booking's own dates. The "excluded" side is added as FILTER-005 and FILTER-006. | 200 OK; the created booking's ID is in the result. |
 | TC-FILTER-003 | Fix | A wrong format is invalid input, not a boundary value. Type changed to Negative. The format is documented for query parameters (CCYY-MM-DD). HTTP rule: invalid input → 400. | 400 Bad Request. |
 | TC-FILTER-004 | Fix | Same as FILTER-001, with firstname only. | 200 OK; the array contains exactly one item: the created booking's ID. |
 | TC-CREATE-001 | Fix | The response must contain the values that were sent, not just the field names. | 200 OK; numeric `bookingid`; `booking` object equal to the request body. |
 | TC-CREATE-002 | Fix | Same as CREATE-001. The documented XML response has `<created-booking>` as the root element. Request sent with exactly the headers of the documented example. | 200 OK; Content-Type header says XML; root element `<created-booking>` with `<bookingid>` and `<booking>`; values equal to the request. |
-| TC-CREATE-003 | Fix | The AI expected a URL-encoded response, but the documented example request sends no Accept header, and the Accept default is application/json. The URL-encoded response example cannot be used because it does not match its own request (DOC-13). | 200 OK; JSON body; `booking` values equal to the fields that were sent. |
+| TC-CREATE-003 | Fix | The AI expected a URL-encoded response, but the documented example request sends no Accept header, and the Accept default is application/json. The URL-encoded response example cannot be used because it does not match its own request (R-5). | 200 OK; JSON body; `booking` values equal to the fields that were sent. |
 | TC-CREATE-004 | Fix | `firstname` is required and every documented example sends it. HTTP rule: missing required field → 400. | 400 Bad Request; no booking exists with the test's unique lastname. |
-| TC-CREATE-005 | Keep | An empty string is the shortest possible value. The field itself is effectively optional (DOC-9), so an empty value must be accepted. | 200 OK; `additionalneeds` stored as an empty string. |
+| TC-CREATE-005 | Keep | An empty string is the shortest possible value. The field itself is effectively optional (G-6), so an empty value must be accepted. | 200 OK; `additionalneeds` stored as an empty string. |
 | TC-UPDATE-001 | Fix | A 200 response does not prove the update was saved. | 200 OK with the new values; a GET afterwards returns the new values. |
-| TC-UPDATE-002 | Keep | Tests the second documented login method. The header format is confirmed by the documented examples (DOC-5). Saving is already checked in UPDATE-001. | 200 OK with the new values. |
+| TC-UPDATE-002 | Keep | Tests the second documented login method. The header format is confirmed by the documented examples (G-4). Saving is already checked in UPDATE-001. | 200 OK with the new values. |
 | TC-UPDATE-003 | Fix | The documentation is silent. HTTP rule: no credentials → 401 or 403. The real risk is an unauthorized change, so the data check matters more than the status code. | 401 or 403; a GET afterwards shows the booking unchanged. |
 | TC-UPDATE-004 | Fix | `totalprice` is required and every documented PUT example sends it. HTTP rule: missing required field → 400. A PUT with a missing field must not overwrite the booking. | 400 Bad Request; a GET afterwards shows the booking unchanged. |
 | TC-UPDATE-005 | Keep | The AI already checks the defining property of PATCH: untouched fields stay the same. | 200 OK; `firstname` and `lastname` updated; all other fields unchanged. |
 | TC-UPDATE-006 | Fix | The documentation is silent. HTTP rule: a booking that does not exist → 404. | 404 Not Found. |
-| TC-DELETE-001 | Fix | "201 or 200" is not one expected result. "Success 200" is an automatic title; the author wrote 201 by hand twice (DOC-2). The response example shows no body, so the body is not checked. A status code alone does not prove deletion. | 201 Created; a GET afterwards returns 404. |
-| TC-DELETE-002 | Fix | Same status decision as DELETE-001. The header format is confirmed by the documented example (DOC-5). Deletion is already checked in DELETE-001. | 201 Created. |
+| TC-DELETE-001 | Fix | "201 or 200" is not one expected result. "Success 200" is an automatic title; the author wrote 201 by hand twice (G-1). The response example shows no body, so the body is not checked. A status code alone does not prove deletion. | 201 Created; a GET afterwards returns 404. |
+| TC-DELETE-002 | Fix | Same status decision as DELETE-001. The header format is confirmed by the documented example (G-4). Deletion is already checked in DELETE-001. | 201 Created. |
 | TC-DELETE-003 | Fix | The documentation says delete requires authorization but gives no error response. HTTP rule: no credentials → 401 or 403. | 401 or 403; a GET afterwards still returns the booking. |
 | TC-DELETE-004 | Fix | The documentation is silent. HTTP rule: a booking that does not exist → 404. | 404 Not Found. |
 
@@ -66,27 +66,34 @@ Rules applied to every test (not counted as changes):
 | TC-CREATE-006 | POST /booking | Create a booking with `totalprice: -1` | Boundary | None | 400 Bad Request | The invalid side of the price boundary. The AI listed negative prices as a documentation gap but wrote no test for it. |
 | TC-CREATE-007 | POST /booking | Create a booking with a decimal `totalprice` (150.75) | Positive | None | 200 OK; `totalprice` stored exactly as 150.75 | The documented type is Number, which includes decimals, but every example and every AI case uses whole numbers. |
 | TC-CREATE-008 | POST /booking | Create a booking whose checkout date is before its checkin date | Negative | None | 400 Bad Request | Checks the relation between two fields. The AI tested each field on its own. |
-| TC-CREATE-009 | POST /booking | Create a booking with checkin in a wrong format (`17-09-2026`) | Negative | None | 400 Bad Request; no booking exists with the test's unique lastname | The AI tested the date format only as a filter. In the request body a wrong date would be saved. The body date format is not documented (DOC-8), so the query parameter format and all examples are used. |
+| TC-CREATE-009 | POST /booking | Create a booking with checkin in a wrong format (`17-09-2026`) | Negative | None | 400 Bad Request; no booking exists with the test's unique lastname | The AI tested the date format only as a filter. In the request body a wrong date would be saved. The body date format is not documented (G-6), so the query parameter format and all examples are used. |
 | TC-UPDATE-007 | PUT /booking/:id | Update a booking with an invalid token (`Cookie: token=invalid`) | Negative | Booking created | 401 or 403; a GET afterwards shows the booking unchanged | The AI tested only a missing token. A wrong token is a different case. |
-| TC-UPDATE-008 | PATCH /booking/:id | Partially update a booking without any credentials | Negative | Booking created | 401 or 403; a GET afterwards shows the booking unchanged | The AI tested missing credentials only for PUT. PATCH changes the same data. PATCH is treated as protected (DOC-10). |
+| TC-UPDATE-008 | PATCH /booking/:id | Partially update a booking without any credentials | Negative | Booking created | 401 or 403; a GET afterwards shows the booking unchanged | The AI tested missing credentials only for PUT. PATCH changes the same data. PATCH is treated as protected (R-2). |
 | TC-UPDATE-009 | PUT /booking/:id | Update a booking that does not exist | Negative | Valid token | 404 Not Found | The AI tested a non-existent ID only for PATCH. PUT is a separate endpoint. |
 | TC-DELETE-005 | DELETE /booking/:id | Delete a booking with an invalid token (`Cookie: token=invalid`) | Negative | Booking created | 401 or 403; a GET afterwards still returns the booking | Same as UPDATE-007, for DELETE. |
 
 ## Documentation findings
-Every finding was checked against `api-docs/restful-booker.md`.
+At the end of its output, Gemini listed 6 problems it saw in the documentation (under "Documentation Ambiguities and Omissions"). This section has two parts:
+- **A. Gemini's 6 items:** each item checked against `api-docs/restful-booker.md`. Numbers match Gemini's numbering.
+- **B. Missed by Gemini:** problems found by the reviewer.
 
-| # | Source | Decision | Finding | Impact on tests |
+The last column shows which tests each problem affects.
+
+### A. Gemini's items
+| No | What Gemini said | Decision | What the documentation actually shows | Affected tests |
 |---|---|---|---|---|
-| DOC-1 | AI | Confirmed | No endpoint documents any error response. | Rules 3 and 4 of the oracle policy were needed. |
-| DOC-2 | AI | Confirmed | Ping and DeleteBooking: the section title says "Success 200", but the author wrote "Default HTTP 201 response" and the example shows `HTTP/1.1 201 Created`. "Success 200" is apiDoc's automatic title, so the author's 201 is used. | DELETE-001, DELETE-002 and the smoke test expect 201. |
-| DOC-3 | Reviewer | — | DeleteBooking returns 201 Created. In HTTP, 201 means a new resource was created; a successful delete normally returns 200 or 204. This is a design problem in the API, not a contradiction in the documentation. | Tests follow the documentation (201). Reported as a design issue. |
-| DOC-4 | AI | Confirmed | All three PartialUpdateBooking examples use `curl -X PUT` instead of PATCH. | Tests use PATCH, as the endpoint definition says. |
-| DOC-5 | AI | Confirmed | The Authorization header description starts with a broken fragment: `YWRtaW46cGFzc3dvcmQxMjM=]`. The correct format is visible in the examples: `Authorization: Basic YWRtaW46cGFzc3dvcmQxMjM=`. | UPDATE-002 and DELETE-002 use the format from the examples. |
-| DOC-6 | AI | Confirmed | DeleteBooking: the `id` description says "the booking you want to update", and the URL is written as `booking/1` instead of `booking/:id`. | None. |
-| DOC-7 | AI | Reinterpreted | The AI read "Optional: no" on the Accept and Content-Type headers as "mandatory". But apiDoc shows "Optional: no" for every field that is not explicitly marked, these headers have documented default values, and the documentation's own GetBooking example sends no Accept header. | GET-006 changed from Negative to Positive. |
-| DOC-8 | AI | Confirmed | The date format CCYY-MM-DD is stated only for the filter parameters. Dates in the request body have no stated format. No value ranges (for example for `totalprice`) are documented. | FILTER-003, CREATE-006, CREATE-009. |
-| DOC-9 | AI | Partly confirmed | `additionalneeds` is shown as "Optional: no", but the documentation's own URL-encoded examples for CreateBooking and UpdateBooking leave it out. So it is effectively optional. | Required-field tests use `firstname` and `totalprice`, not `additionalneeds`. CREATE-005 kept. |
-| DOC-10 | Reviewer | — | CreateToken says the token is for "PUT and DELETE". PATCH is not mentioned, yet PartialUpdateBooking lists the same auth headers, and their descriptions even say "access the PUT endpoint". | UPDATE-008 treats PATCH as protected. |
-| DOC-11 | Reviewer | — | "Default value" is shown on fields where it cannot be a real default, for example `token=<token_value>` for Cookie. So the default values on `username` (admin) and `password` (password123) are examples, not behavior. | AUTH-003 expects 400 for a missing username. |
-| DOC-12 | Reviewer | — | The Content-Type descriptions list only "application/json or text/xml", but URL-encoded examples exist. The UpdateBooking URL-encoded example also sends `Accept: application/x-www-form-urlencoded`, which the Accept description does not list. | CREATE-003 follows the example. |
-| DOC-13 | Reviewer | — | The URL-encoded examples do not match their own responses: the CreateBooking request sends checkout `2018-01-02`, but the URL Response example shows `2019-01-01`. | The URL Response examples are not used as expected results (CREATE-003). |
+| G-1 | Ping and DeleteBooking: the section title says 200, the example says 201 | Correct, explanation missing | "Success 200" is a title apiDoc adds automatically. The author wrote 201 by hand twice ("Default HTTP 201 response" and `HTTP/1.1 201 Created`). So the author means 201. | DELETE-001, DELETE-002 and the smoke test expect 201. |
+| G-2 | No endpoint documents any error response | Correct | Every endpoint has only a success section. | Rules 3 and 4 of the oracle policy. |
+| G-3 | All PartialUpdateBooking examples use `curl -X PUT` | Correct | All three examples use PUT. | Tests use PATCH, as the endpoint definition says. |
+| G-4 | (a) The Authorization description is broken. (b) DeleteBooking: the `id` description says "update" and the URL is `booking/1` | Correct | (a) The description starts with `YWRtaW46cGFzc3dvcmQxMjM=]`. The correct format is visible in the examples: `Authorization: Basic YWRtaW46cGFzc3dvcmQxMjM=`. (b) As stated. | (a) UPDATE-002 and DELETE-002 use the format from the examples. (b) None. |
+| G-5 | Accept and Content-Type are "Optional: no", so mandatory, but no fallback is documented | Misread | apiDoc shows "Optional: no" for every field not explicitly marked optional. These headers have documented default values, and the documentation's own GetBooking example sends no Accept header. So they are not mandatory. | GET-006 changed from Negative to Positive. |
+| G-6 | (a) No date format for body dates. (b) No value ranges (e.g. negative price). (c) `additionalneeds` looks mandatory; empty value behavior not documented | Partly correct | (a) and (b) are correct. (c) The label says "Optional: no", but the documentation's own URL-encoded examples for CreateBooking and UpdateBooking leave the field out. So it is effectively optional. | (a) FILTER-003, CREATE-009. (b) CREATE-006. (c) Required-field tests use `firstname` and `totalprice`; CREATE-005 kept. |
+
+### B. Missed by Gemini
+| No | Finding | Affected tests |
+|---|---|---|
+| R-1 | A successful delete returns 201 Created. In HTTP, 201 means a new resource was created; a delete normally returns 200 or 204. This is not a contradiction in the documentation but a design problem in the API. | Tests follow the documentation (201). Reported as a design issue. |
+| R-2 | CreateToken says the token is for "PUT and DELETE". PATCH is not mentioned, yet PartialUpdateBooking lists the same auth headers, and their descriptions even say "access the PUT endpoint". | UPDATE-008 treats PATCH as protected. |
+| R-3 | "Default value" appears on fields where it cannot be a real default, e.g. `token=<token_value>` for Cookie. So `admin` and `password123` are examples, not defaults. | AUTH-003 expects 400 when username is missing. |
+| R-4 | The Content-Type descriptions list only "application/json or text/xml", but URL-encoded examples exist. The UpdateBooking URL-encoded example also sends `Accept: application/x-www-form-urlencoded`, which the Accept description does not list. | CREATE-003 follows the example. |
+| R-5 | The URL-encoded examples do not match their own responses: the CreateBooking request sends checkout `2018-01-02`, but the URL Response example shows `2019-01-01`. | URL Response examples are not used as expected results (CREATE-003). |
