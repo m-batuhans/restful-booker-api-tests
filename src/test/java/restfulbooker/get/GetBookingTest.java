@@ -8,9 +8,11 @@ import restfulbooker.base.BaseTest;
 import restfulbooker.config.ConfigLoader;
 import restfulbooker.support.BookingApi;
 import restfulbooker.support.BookingPayload;
+import restfulbooker.support.HttpCalls;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class GetBookingTest extends BaseTest {
@@ -59,16 +61,20 @@ class GetBookingTest extends BaseTest {
                 .when()
                 .get("/booking/" + bookingId);
 
+        // XmlPath resolves body() paths starting from the document root, whose tag is <booking>
+        // here - so each field must be prefixed with "booking." (unlike JsonPath, where the
+        // object itself has no name). Without the prefix, "firstname" does not match anything
+        // and XmlPath falls back to describing the whole root node.
         response.then()
                 .log().all()
                 .statusCode(200)
-                .body("firstname", equalTo(payload.currentFirstname()))
-                .body("lastname", equalTo(payload.currentLastname()))
-                .body("totalprice", equalTo(String.valueOf(payload.currentTotalprice())))
-                .body("depositpaid", equalTo(String.valueOf(payload.currentDepositpaid())))
-                .body("bookingdates.checkin", equalTo(payload.currentCheckin()))
-                .body("bookingdates.checkout", equalTo(payload.currentCheckout()))
-                .body("additionalneeds", equalTo(payload.currentAdditionalneeds()));
+                .body("booking.firstname", equalTo(payload.currentFirstname()))
+                .body("booking.lastname", equalTo(payload.currentLastname()))
+                .body("booking.totalprice", equalTo(String.valueOf(payload.currentTotalprice())))
+                .body("booking.depositpaid", equalTo(String.valueOf(payload.currentDepositpaid())))
+                .body("booking.bookingdates.checkin", equalTo(payload.currentCheckin()))
+                .body("booking.bookingdates.checkout", equalTo(payload.currentCheckout()))
+                .body("booking.additionalneeds", equalTo(payload.currentAdditionalneeds()));
 
         assertTrue(response.getContentType().contains("xml"), "Expected an XML content type");
         assertTrue(response.getBody().asString().trim().startsWith("<booking>"), "Expected <booking> as the root element");
@@ -81,13 +87,13 @@ class GetBookingTest extends BaseTest {
         BookingApi api = new BookingApi(requestSpec);
         int nonExistentId = api.guaranteedNonExistentId();
 
-        Response response = given()
+        int statusCode = HttpCalls.statusCode(() -> given()
                 .log().all()
                 .spec(requestSpec)
                 .when()
-                .get("/booking/" + nonExistentId);
+                .get("/booking/" + nonExistentId));
 
-        response.then().log().all().statusCode(404);
+        assertEquals(404, statusCode);
     }
 
     @Test

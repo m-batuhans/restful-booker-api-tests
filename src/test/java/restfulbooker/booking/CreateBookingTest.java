@@ -78,6 +78,7 @@ class CreateBookingTest extends BaseTest {
                 .spec(requestSpec)
                 .config(NO_CHARSET_CONFIG)
                 .contentType("text/xml")
+                .accept("application/xml")
                 .body(payload.buildXml())
                 .when()
                 .post("/booking");

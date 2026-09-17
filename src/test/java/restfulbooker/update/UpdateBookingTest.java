@@ -7,9 +7,11 @@ import org.junit.jupiter.api.Test;
 import restfulbooker.base.BaseTest;
 import restfulbooker.support.BookingApi;
 import restfulbooker.support.BookingPayload;
+import restfulbooker.support.HttpCalls;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class UpdateBookingTest extends BaseTest {
@@ -91,16 +93,14 @@ class UpdateBookingTest extends BaseTest {
 
         BookingPayload attempted = BookingPayload.valid().firstname("Intruder");
 
-        Response response = given()
+        int statusCode = HttpCalls.statusCode(() -> given()
                 .log().all()
                 .spec(requestSpec)
                 .body(attempted.build())
                 .when()
-                .put("/booking/" + bookingId);
+                .put("/booking/" + bookingId));
 
-        response.then().log().all();
-        assertTrue(response.statusCode() == 401 || response.statusCode() == 403,
-                "Expected 401 or 403 but got " + response.statusCode());
+        assertTrue(statusCode == 401 || statusCode == 403, "Expected 401 or 403 but got " + statusCode);
 
         Response verify = given()
                 .log().all()
@@ -126,15 +126,15 @@ class UpdateBookingTest extends BaseTest {
 
         BookingPayload incomplete = BookingPayload.valid().withoutTotalprice();
 
-        Response response = given()
+        int statusCode = HttpCalls.statusCode(() -> given()
                 .log().all()
                 .spec(requestSpec)
                 .cookie("token", token)
                 .body(incomplete.build())
                 .when()
-                .put("/booking/" + bookingId);
+                .put("/booking/" + bookingId));
 
-        response.then().log().all().statusCode(400);
+        assertEquals(400, statusCode);
 
         Response verify = given()
                 .log().all()
@@ -199,15 +199,15 @@ class UpdateBookingTest extends BaseTest {
                 }
                 """;
 
-        Response response = given()
+        int statusCode = HttpCalls.statusCode(() -> given()
                 .log().all()
                 .spec(requestSpec)
                 .cookie("token", token)
                 .body(partialBody)
                 .when()
-                .patch("/booking/" + nonExistentId);
+                .patch("/booking/" + nonExistentId));
 
-        response.then().log().all().statusCode(404);
+        assertEquals(404, statusCode);
     }
 
     @Test
@@ -218,17 +218,15 @@ class UpdateBookingTest extends BaseTest {
         BookingPayload original = BookingPayload.valid();
         int bookingId = api.createBooking(original.build());
 
-        Response response = given()
+        int statusCode = HttpCalls.statusCode(() -> given()
                 .log().all()
                 .spec(requestSpec)
                 .cookie("token", "invalid")
                 .body(BookingPayload.valid().firstname("Intruder").build())
                 .when()
-                .put("/booking/" + bookingId);
+                .put("/booking/" + bookingId));
 
-        response.then().log().all();
-        assertTrue(response.statusCode() == 401 || response.statusCode() == 403,
-                "Expected 401 or 403 but got " + response.statusCode());
+        assertTrue(statusCode == 401 || statusCode == 403, "Expected 401 or 403 but got " + statusCode);
 
         Response verify = given()
                 .log().all()
@@ -256,16 +254,14 @@ class UpdateBookingTest extends BaseTest {
                 }
                 """;
 
-        Response response = given()
+        int statusCode = HttpCalls.statusCode(() -> given()
                 .log().all()
                 .spec(requestSpec)
                 .body(attemptedBody)
                 .when()
-                .patch("/booking/" + bookingId);
+                .patch("/booking/" + bookingId));
 
-        response.then().log().all();
-        assertTrue(response.statusCode() == 401 || response.statusCode() == 403,
-                "Expected 401 or 403 but got " + response.statusCode());
+        assertTrue(statusCode == 401 || statusCode == 403, "Expected 401 or 403 but got " + statusCode);
 
         Response verify = given()
                 .log().all()
@@ -287,14 +283,14 @@ class UpdateBookingTest extends BaseTest {
         int nonExistentId = api.guaranteedNonExistentId();
         String token = api.createToken();
 
-        Response response = given()
+        int statusCode = HttpCalls.statusCode(() -> given()
                 .log().all()
                 .spec(requestSpec)
                 .cookie("token", token)
                 .body(BookingPayload.valid().build())
                 .when()
-                .put("/booking/" + nonExistentId);
+                .put("/booking/" + nonExistentId));
 
-        response.then().log().all().statusCode(404);
+        assertEquals(404, statusCode);
     }
 }

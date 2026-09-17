@@ -7,8 +7,10 @@ import org.junit.jupiter.api.Test;
 import restfulbooker.base.BaseTest;
 import restfulbooker.support.BookingApi;
 import restfulbooker.support.BookingPayload;
+import restfulbooker.support.HttpCalls;
 
 import static io.restassured.RestAssured.given;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class DeleteBookingTest extends BaseTest {
@@ -30,13 +32,13 @@ class DeleteBookingTest extends BaseTest {
 
         response.then().log().all().statusCode(201);
 
-        Response verify = given()
+        int verifyStatusCode = HttpCalls.statusCode(() -> given()
                 .log().all()
                 .spec(requestSpec)
                 .when()
-                .get("/booking/" + bookingId);
+                .get("/booking/" + bookingId));
 
-        verify.then().log().all().statusCode(404);
+        assertEquals(404, verifyStatusCode);
     }
 
     @Test
@@ -63,15 +65,13 @@ class DeleteBookingTest extends BaseTest {
         BookingApi api = new BookingApi(requestSpec);
         int bookingId = api.createBooking(BookingPayload.valid().build());
 
-        Response response = given()
+        int statusCode = HttpCalls.statusCode(() -> given()
                 .log().all()
                 .spec(requestSpec)
                 .when()
-                .delete("/booking/" + bookingId);
+                .delete("/booking/" + bookingId));
 
-        response.then().log().all();
-        assertTrue(response.statusCode() == 401 || response.statusCode() == 403,
-                "Expected 401 or 403 but got " + response.statusCode());
+        assertTrue(statusCode == 401 || statusCode == 403, "Expected 401 or 403 but got " + statusCode);
 
         Response verify = given()
                 .log().all()
@@ -90,14 +90,14 @@ class DeleteBookingTest extends BaseTest {
         int nonExistentId = api.guaranteedNonExistentId();
         String token = api.createToken();
 
-        Response response = given()
+        int statusCode = HttpCalls.statusCode(() -> given()
                 .log().all()
                 .spec(requestSpec)
                 .cookie("token", token)
                 .when()
-                .delete("/booking/" + nonExistentId);
+                .delete("/booking/" + nonExistentId));
 
-        response.then().log().all().statusCode(404);
+        assertEquals(404, statusCode);
     }
 
     @Test
@@ -107,16 +107,14 @@ class DeleteBookingTest extends BaseTest {
         BookingApi api = new BookingApi(requestSpec);
         int bookingId = api.createBooking(BookingPayload.valid().build());
 
-        Response response = given()
+        int statusCode = HttpCalls.statusCode(() -> given()
                 .log().all()
                 .spec(requestSpec)
                 .cookie("token", "invalid")
                 .when()
-                .delete("/booking/" + bookingId);
+                .delete("/booking/" + bookingId));
 
-        response.then().log().all();
-        assertTrue(response.statusCode() == 401 || response.statusCode() == 403,
-                "Expected 401 or 403 but got " + response.statusCode());
+        assertTrue(statusCode == 401 || statusCode == 403, "Expected 401 or 403 but got " + statusCode);
 
         Response verify = given()
                 .log().all()
