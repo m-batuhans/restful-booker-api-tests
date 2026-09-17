@@ -1,5 +1,7 @@
 package restfulbooker.booking;
 
+import io.restassured.config.EncoderConfig;
+import io.restassured.config.RestAssuredConfig;
 import io.restassured.response.Response;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -18,6 +20,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class CreateBookingTest extends BaseTest {
+
+    // The documented XML and URL-encoded examples set Content-Type with no charset parameter
+    // (e.g. "text/xml", not "text/xml; charset=..."). REST Assured appends a default charset to
+    // any Content-Type left without one unless this is turned off.
+    private static final RestAssuredConfig NO_CHARSET_CONFIG = RestAssuredConfig.config()
+            .encoderConfig(EncoderConfig.encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false));
 
     @Test
     @Tag("TC-CREATE-001")
@@ -68,6 +76,7 @@ class CreateBookingTest extends BaseTest {
         Response response = given()
                 .log().all()
                 .spec(requestSpec)
+                .config(NO_CHARSET_CONFIG)
                 .contentType("text/xml")
                 .body(payload.buildXml())
                 .when()
@@ -98,6 +107,7 @@ class CreateBookingTest extends BaseTest {
         Response response = given()
                 .log().all()
                 .spec(requestSpec)
+                .config(NO_CHARSET_CONFIG)
                 .contentType("application/x-www-form-urlencoded")
                 .body(payload.buildFormEncoded())
                 .when()

@@ -5,6 +5,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import restfulbooker.base.BaseTest;
+import restfulbooker.config.ConfigLoader;
 import restfulbooker.support.BookingApi;
 import restfulbooker.support.BookingPayload;
 
@@ -49,9 +50,11 @@ class GetBookingTest extends BaseTest {
         BookingPayload payload = BookingPayload.valid();
         int bookingId = api.createBooking(payload.build());
 
+        // The documented GetBooking example sends only an Accept header, no Content-Type. Bypass
+        // requestSpec (which would add Content-Type: application/json) to match it exactly.
         Response response = given()
                 .log().all()
-                .spec(requestSpec)
+                .baseUri(ConfigLoader.baseUrl())
                 .accept("application/xml")
                 .when()
                 .get("/booking/" + bookingId);
