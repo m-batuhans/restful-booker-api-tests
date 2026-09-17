@@ -242,21 +242,28 @@ The body is well-formed XML with the documented structure, but the Content-Type 
 **Affected cases:** TC-FILTER-002, TC-FILTER-006
 **Issue:** [#7](https://github.com/m-batuhans/restful-booker-api-tests/issues/7)
 
-Explored manually (outside the test suite) to isolate which of `checkin` and `checkout` is at fault. Created one booking with `checkin=2026-04-10`, `checkout=2026-04-15` (bookingid 4592), then queried each filter alone:
+An earlier version of this exploration (booking 4592) could not be trusted: the shared public instance resets itself periodically, and the booking no longer existed by the time part of the exploration queried it, so a "not found" result could not be told apart from "the filter excluded it". This run re-verified the booking still existed immediately after the last query below.
 
-| Query | Result count | Booking 4592 included? |
+Booking 4164: `checkin=2026-04-10`, `checkout=2026-04-15`. Verified to still exist after the last query.
+
+| Query | Booking in result | Documentation says |
 |---|---|---|
-| `GET /booking?checkin=2026-04-10` (equal to its own checkin) | 40 | **No** — should be included per "greater than or equal" |
-| `GET /booking?checkin=2026-04-11` (one day after its checkin) | 40 | No (correctly excluded) |
-| `GET /booking?checkout=2026-04-15` (equal to its own checkout) | 3160 | Yes (correctly included) |
-| `GET /booking?checkout=2026-04-16` (one day after its checkout) | 3249 | **Yes** — should be excluded per "greater than or equal" |
-| `GET /booking?checkin=2026-04-10&checkout=2026-04-15` (both, exact match) | 3 | **No** |
+| `GET /booking?checkin=2026-04-09` | yes | yes |
+| `GET /booking?checkin=2026-04-10` | no | yes (equal) |
+| `GET /booking?checkin=2026-04-11` | no | no |
+| `GET /booking?checkout=2026-04-14` | no | yes |
+| `GET /booking?checkout=2026-04-15` | yes | yes (equal) |
+| `GET /booking?checkout=2026-04-16` | yes | no |
 
-**Expected result (source: documentation — "checkin"/"checkout" query params "return bookings that have a [...] date greater than or equal to the set date"):** the booking's own ID is included when the filter date equals its checkin/checkout, and excluded once the filter date passes it.
+**Expected result (source: documentation — "checkin"/"checkout" query params "return bookings that have a [...] date greater than or equal to the set date"):** each row's "Documentation says" column, derived from the booking's own checkin/checkout compared with "greater than or equal to" the filter date.
 
-**Actual result:** `checkin` excludes the exact-match case (behaves as strict "greater than", not "greater than or equal to"). `checkout` includes a date one day past the booking's own checkout (behaves as if the upper bound isn't enforced, or as "less than or equal" from the other direction). Combining both filters produces yet a third, smaller result set that also excludes the booking — the two filters do not appear to be applied consistently together either.
+**Actual result — two separate defects in the same bug:**
+1. The `checkin` filter excludes the equal date: it behaves as a strict "greater than", not "greater than or equal to".
+2. The `checkout` filter compares in the opposite direction: it returns bookings whose checkout date is less than or equal to the given date, not greater than or equal to it.
 
-TC-FILTER-002 (combined checkin+checkout, exact match) fails because of the `checkin` half. TC-FILTER-006 (checkout one day after, expecting exclusion) fails because of the `checkout` half.
+TC-FILTER-002 (checkin and checkout both equal to the booking's own dates) fails because of defect 1. TC-FILTER-006 (checkout one day after the booking's checkout, expecting exclusion) fails because of defect 2.
+
+**Note:** on this shared instance, a filter result cannot be interpreted at face value. The booking used to probe it must be independently verified to still exist (e.g. with a `GET /booking/<id>`) at the time of each query, since the public data resets periodically and a "not found" result can mean either "the filter excluded it" or "the booking is gone".
 
 ---
 
