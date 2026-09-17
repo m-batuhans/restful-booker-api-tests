@@ -8,7 +8,7 @@ Reviewer: Mevlüt Batuhan Saar
 - Keep: 5 · Fix: 23 · Drop: 1
 - Added cases (missed by AI): 10
 - Cases to implement: 38
-- Documentation findings: Gemini listed 6 (4 confirmed, 1 partly confirmed, 1 misread); reviewer added 5
+- Documentation findings: Gemini listed 6 (4 confirmed, 1 partly confirmed, 1 misread); reviewer added 6
 
 ## Oracle policy
 How the expected result of a test is decided, in this order:
@@ -23,7 +23,7 @@ Rules applied to every test (not counted as changes):
 - Names used in filter tests get a unique suffix, so other users of the shared server cannot affect the result.
 - A request body field is required unless it is marked optional or the documentation's own examples leave it out.
 - A booking ID that is guaranteed not to exist is obtained by creating a booking and deleting it. If the deletion fails, the test stops with an error instead of giving a false result.
-- XML and URL-encoded requests use exactly the headers shown in the documented example.
+- XML and URL-encoded requests use the headers shown in the documented examples. A test that expects an XML response also sends `Accept: application/xml`, as the UpdateBooking XML example does (R-6).
 
 ## Decisions
 | ID | Decision (Keep/Fix/Drop) | Reason | Final expected result |
@@ -43,7 +43,7 @@ Rules applied to every test (not counted as changes):
 | TC-FILTER-003 | Fix | A wrong format is invalid input, not a boundary value. Type changed to Negative. The format is documented for query parameters (CCYY-MM-DD). HTTP rule: invalid input → 400. | 400 Bad Request. |
 | TC-FILTER-004 | Fix | Same as FILTER-001, with firstname only. | 200 OK; the array contains exactly one item: the created booking's ID. |
 | TC-CREATE-001 | Fix | The response must contain the values that were sent, not just the field names. | 200 OK; numeric `bookingid`; `booking` object equal to the request body. |
-| TC-CREATE-002 | Fix | Same as CREATE-001. The documented XML response has `<created-booking>` as the root element. Request sent with exactly the headers of the documented example. | 200 OK; Content-Type header says XML; root element `<created-booking>` with `<bookingid>` and `<booking>`; values equal to the request. |
+| TC-CREATE-002 | Fix | Same as CREATE-001. The documented XML response has `<created-booking>` as the root element. Sent with `Content-Type: text/xml` and `Accept: application/xml`. The CreateBooking XML example has no Accept header, and without it the documented default (JSON) applies (R-6). | 200 OK; Content-Type header says XML; root element `<created-booking>` with `<bookingid>` and `<booking>`; values equal to the request. |
 | TC-CREATE-003 | Fix | The AI expected a URL-encoded response, but the documented example request sends no Accept header, and the Accept default is application/json. The URL-encoded response example cannot be used because it does not match its own request (R-5). | 200 OK; JSON body; `booking` values equal to the fields that were sent. |
 | TC-CREATE-004 | Fix | `firstname` is required and every documented example sends it. HTTP rule: missing required field → 400. | 400 Bad Request; no booking exists with the test's unique lastname. |
 | TC-CREATE-005 | Keep | An empty string is the shortest possible value. The field itself is effectively optional (G-6), so an empty value must be accepted. | 200 OK; `additionalneeds` stored as an empty string. |
@@ -97,3 +97,4 @@ The last column shows which tests each problem affects.
 | R-3 | "Default value" appears on fields where it cannot be a real default, e.g. `token=<token_value>` for Cookie. So `admin` and `password123` are examples, not defaults. | AUTH-003 expects 400 when username is missing. |
 | R-4 | The Content-Type descriptions list only "application/json or text/xml", but URL-encoded examples exist. The UpdateBooking URL-encoded example also sends `Accept: application/x-www-form-urlencoded`, which the Accept description does not list. | CREATE-003 follows the example. |
 | R-5 | The URL-encoded examples do not match their own responses: the CreateBooking request sends checkout `2018-01-02`, but the URL Response example shows `2019-01-01`. | URL Response examples are not used as expected results (CREATE-003). |
+| R-6 | The CreateBooking XML example sends only `Content-Type: text/xml`, while the UpdateBooking and PartialUpdateBooking XML examples also send `Accept: application/xml`. Without Accept, the documented default (application/json) applies, so a request copied from the CreateBooking example gets a JSON response. | CREATE-002 sends `Accept: application/xml`. |
