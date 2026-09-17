@@ -8,6 +8,7 @@ Source: `mvn test` run on 2026-09-17 (39 tests, 14 failures, 0 errors) and manua
 
 **Severity:** High
 **Affected case:** TC-CREATE-004
+**Issue:** [#1](https://github.com/m-batuhans/restful-booker-api-tests/issues/1)
 
 **Steps:**
 ```
@@ -42,6 +43,7 @@ Internal Server Error
 
 **Severity:** High
 **Affected case:** TC-CREATE-009
+**Issue:** [#2](https://github.com/m-batuhans/restful-booker-api-tests/issues/2)
 
 **Steps:**
 ```
@@ -90,6 +92,7 @@ Confirmed the corrupted value is what's actually stored (not just echoed) with a
 
 **Severity:** High
 **Affected case:** TC-CREATE-007
+**Issue:** [#3](https://github.com/m-batuhans/restful-booker-api-tests/issues/3)
 
 **Steps:**
 ```
@@ -133,6 +136,7 @@ The fractional part is silently dropped.
 
 **Severity:** Medium
 **Affected cases:** TC-UPDATE-006, TC-UPDATE-009, TC-DELETE-004
+**Issue:** [#4](https://github.com/m-batuhans/restful-booker-api-tests/issues/4)
 
 All three use the same setup: create a booking, delete it (confirmed 201), then act on the same now-nonexistent ID with a valid token.
 
@@ -185,6 +189,7 @@ For comparison, `GET /booking/<same kind of deleted id>` correctly returns 404 (
 
 **Severity:** Medium
 **Affected cases:** TC-CREATE-002, TC-GET-004
+**Issue:** [#5](https://github.com/m-batuhans/restful-booker-api-tests/issues/5)
 
 **Steps — CreateBooking (TC-CREATE-002):**
 ```
@@ -235,6 +240,7 @@ The body is well-formed XML with the documented structure, but the Content-Type 
 
 **Severity:** Medium
 **Affected cases:** TC-FILTER-002, TC-FILTER-006
+**Issue:** [#7](https://github.com/m-batuhans/restful-booker-api-tests/issues/7)
 
 Explored manually (outside the test suite) to isolate which of `checkin` and `checkout` is at fault. Created one booking with `checkin=2026-04-10`, `checkout=2026-04-15` (bookingid 4592), then queried each filter alone:
 
@@ -258,6 +264,7 @@ TC-FILTER-002 (combined checkin+checkout, exact match) fails because of the `che
 
 **Severity:** Low
 **Affected cases:** TC-CREATE-006, TC-CREATE-008, TC-FILTER-003, TC-AUTH-003
+**Issue:** [#6](https://github.com/m-batuhans/restful-booker-api-tests/issues/6)
 
 Four different kinds of invalid input, all accepted with 200 instead of being rejected.
 
