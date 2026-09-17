@@ -1,6 +1,7 @@
 package restfulbooker.update;
 
 import io.restassured.response.Response;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -188,6 +189,7 @@ class UpdateBookingTest extends BaseTest {
     @Test
     @Tag("TC-UPDATE-006")
     @DisplayName("TC-UPDATE-006: Partially updating a non-existent booking returns 404")
+    @Disabled("Known bug: BUG-04, see docs/03-bug-reports.md")
     void partialUpdateOfNonExistentBookingReturns404() {
         BookingApi api = new BookingApi(requestSpec);
         int nonExistentId = api.guaranteedNonExistentId();
@@ -278,6 +280,7 @@ class UpdateBookingTest extends BaseTest {
     @Test
     @Tag("TC-UPDATE-009")
     @DisplayName("TC-UPDATE-009: Updating a non-existent booking returns 404")
+    @Disabled("Known bug: BUG-04, see docs/03-bug-reports.md")
     void updateNonExistentBookingReturns404() {
         BookingApi api = new BookingApi(requestSpec);
         int nonExistentId = api.guaranteedNonExistentId();

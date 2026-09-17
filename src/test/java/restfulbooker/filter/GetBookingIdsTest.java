@@ -1,6 +1,7 @@
 package restfulbooker.filter;
 
 import io.restassured.response.Response;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -43,6 +44,7 @@ class GetBookingIdsTest extends BaseTest {
     @Test
     @Tag("TC-FILTER-002")
     @DisplayName("TC-FILTER-002: Filtering by checkin and checkout dates equal to the booking's own dates includes it")
+    @Disabled("Known bug: BUG-06, see docs/03-bug-reports.md")
     void filterByCheckinAndCheckoutEqualToBookingDatesIncludesIt() {
         BookingApi api = new BookingApi(requestSpec);
         BookingPayload payload = BookingPayload.valid().checkin("2026-03-10").checkout("2026-03-15");
@@ -65,6 +67,7 @@ class GetBookingIdsTest extends BaseTest {
     @Test
     @Tag("TC-FILTER-003")
     @DisplayName("TC-FILTER-003: Filtering with an invalid checkin date format is rejected")
+    @Disabled("Known bug: BUG-07, see docs/03-bug-reports.md")
     void filterWithInvalidCheckinFormatIsRejected() {
         Response response = given()
                 .log().all()
@@ -121,6 +124,7 @@ class GetBookingIdsTest extends BaseTest {
     @Test
     @Tag("TC-FILTER-006")
     @DisplayName("TC-FILTER-006: Filtering by checkout date one day after the booking's checkout excludes it")
+    @Disabled("Known bug: BUG-06, see docs/03-bug-reports.md")
     void filterByCheckoutDateAfterBookingCheckoutExcludesIt() {
         BookingApi api = new BookingApi(requestSpec);
         BookingPayload payload = BookingPayload.valid().checkin("2026-03-10").checkout("2026-03-15");

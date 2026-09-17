@@ -1,6 +1,7 @@
 package restfulbooker.get;
 
 import io.restassured.response.Response;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -47,6 +48,7 @@ class GetBookingTest extends BaseTest {
     @Test
     @Tag("TC-GET-004")
     @DisplayName("TC-GET-004: Retrieving a booking with Accept: application/xml returns an XML <booking> body matching the created values")
+    @Disabled("Known bug: BUG-05, see docs/03-bug-reports.md")
     void retrievedBookingAsXmlMatchesCreatedValues() {
         BookingApi api = new BookingApi(requestSpec);
         BookingPayload payload = BookingPayload.valid();

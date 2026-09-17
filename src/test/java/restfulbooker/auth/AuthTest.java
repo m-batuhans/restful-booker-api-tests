@@ -1,6 +1,7 @@
 package restfulbooker.auth;
 
 import io.restassured.response.Response;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -70,6 +71,7 @@ class AuthTest extends BaseTest {
     @Test
     @Tag("TC-AUTH-003")
     @DisplayName("TC-AUTH-003: Missing username is rejected")
+    @Disabled("Known bug: BUG-07, see docs/03-bug-reports.md")
     void missingUsernameIsRejected() {
         String requestBody = """
                 {

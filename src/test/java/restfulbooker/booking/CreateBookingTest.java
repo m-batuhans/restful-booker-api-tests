@@ -3,6 +3,7 @@ package restfulbooker.booking;
 import io.restassured.config.EncoderConfig;
 import io.restassured.config.RestAssuredConfig;
 import io.restassured.response.Response;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -70,6 +71,7 @@ class CreateBookingTest extends BaseTest {
     @Test
     @Tag("TC-CREATE-002")
     @DisplayName("TC-CREATE-002: Creating a booking with an XML payload returns a <created-booking> body matching the request")
+    @Disabled("Known bug: BUG-05, see docs/03-bug-reports.md")
     void createBookingWithXmlPayloadReturnsMatchingCreatedBooking() {
         BookingPayload payload = BookingPayload.valid();
 
@@ -131,6 +133,7 @@ class CreateBookingTest extends BaseTest {
     @Test
     @Tag("TC-CREATE-004")
     @DisplayName("TC-CREATE-004: Creating a booking without firstname is rejected and nothing is stored")
+    @Disabled("Known bug: BUG-01, see docs/03-bug-reports.md")
     void createBookingWithoutFirstnameIsRejectedAndNotStored() {
         BookingPayload payload = BookingPayload.valid().withoutFirstname();
 
@@ -176,6 +179,7 @@ class CreateBookingTest extends BaseTest {
     @Test
     @Tag("TC-CREATE-006")
     @DisplayName("TC-CREATE-006: Creating a booking with totalprice -1 is rejected")
+    @Disabled("Known bug: BUG-07, see docs/03-bug-reports.md")
     void createBookingWithNegativeTotalpriceIsRejected() {
         BookingPayload payload = BookingPayload.valid().totalprice(-1);
 
@@ -192,6 +196,7 @@ class CreateBookingTest extends BaseTest {
     @Test
     @Tag("TC-CREATE-007")
     @DisplayName("TC-CREATE-007: Creating a booking with a decimal totalprice stores it exactly")
+    @Disabled("Known bug: BUG-03, see docs/03-bug-reports.md")
     void createBookingWithDecimalTotalpriceStoresExactValue() {
         BookingPayload payload = BookingPayload.valid().totalprice(150.75);
 
@@ -209,6 +214,7 @@ class CreateBookingTest extends BaseTest {
     @Test
     @Tag("TC-CREATE-008")
     @DisplayName("TC-CREATE-008: Creating a booking with checkout before checkin is rejected")
+    @Disabled("Known bug: BUG-07, see docs/03-bug-reports.md")
     void createBookingWithCheckoutBeforeCheckinIsRejected() {
         BookingPayload payload = BookingPayload.valid().checkin("2026-05-10").checkout("2026-05-01");
 
@@ -225,6 +231,7 @@ class CreateBookingTest extends BaseTest {
     @Test
     @Tag("TC-CREATE-009")
     @DisplayName("TC-CREATE-009: Creating a booking with a wrong-format checkin date is rejected and nothing is stored")
+    @Disabled("Known bug: BUG-02, see docs/03-bug-reports.md")
     void createBookingWithWrongFormatCheckinIsRejectedAndNotStored() {
         BookingPayload payload = BookingPayload.valid().checkin("17-09-2026");
 

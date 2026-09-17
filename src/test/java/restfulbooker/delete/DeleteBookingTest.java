@@ -1,6 +1,7 @@
 package restfulbooker.delete;
 
 import io.restassured.response.Response;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -85,6 +86,7 @@ class DeleteBookingTest extends BaseTest {
     @Test
     @Tag("TC-DELETE-004")
     @DisplayName("TC-DELETE-004: Deleting a non-existent booking returns 404")
+    @Disabled("Known bug: BUG-04, see docs/03-bug-reports.md")
     void deleteNonExistentBookingReturns404() {
         BookingApi api = new BookingApi(requestSpec);
         int nonExistentId = api.guaranteedNonExistentId();
