@@ -27,8 +27,8 @@ The point of this project is not only the tests. An LLM designs the test cases f
 | BUG-03 | Decimal totalprice is truncated (150.75 stored as 150) | High | [#3](https://github.com/m-batuhans/restful-booker-api-tests/issues/3) |
 | BUG-04 | PUT, PATCH and DELETE return 405 instead of 404 for a non-existent booking (GET returns 404) | Medium | [#4](https://github.com/m-batuhans/restful-booker-api-tests/issues/4) |
 | BUG-05 | XML responses have Content-Type text/html | Medium | [#5](https://github.com/m-batuhans/restful-booker-api-tests/issues/5) |
-| BUG-06 | Date filters do not follow greater-than-or-equal semantics | Medium | [#7](https://github.com/m-batuhans/restful-booker-api-tests/issues/7) |
-| BUG-07 | No input validation (negative price, checkout before checkin, invalid filter date format, login without username all return 200) | Low | [#6](https://github.com/m-batuhans/restful-booker-api-tests/issues/6) |
+| BUG-06 | Date filters do not follow greater-than-or-equal semantics | Medium | [#6](https://github.com/m-batuhans/restful-booker-api-tests/issues/6) |
+| BUG-07 | No input validation (negative price, checkout before checkin, invalid filter date format, login without username all return 200) | Low | [#7](https://github.com/m-batuhans/restful-booker-api-tests/issues/7) |
 
 BUG-06 covers two separate defects, isolated by querying each filter on its own: the checkin filter excludes the equal date, behaving as a strict "greater than", while the checkout filter compares in the opposite direction, returning bookings whose checkout date is less than or equal to the given date.
 

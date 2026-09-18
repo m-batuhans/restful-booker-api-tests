@@ -240,7 +240,7 @@ The body is well-formed XML with the documented structure, but the Content-Type 
 
 **Severity:** Medium
 **Affected cases:** TC-FILTER-002, TC-FILTER-006
-**Issue:** [#7](https://github.com/m-batuhans/restful-booker-api-tests/issues/7)
+**Issue:** [#6](https://github.com/m-batuhans/restful-booker-api-tests/issues/6)
 
 An earlier version of this exploration (booking 4592) could not be trusted: the shared public instance resets itself periodically, and the booking no longer existed by the time part of the exploration queried it, so a "not found" result could not be told apart from "the filter excluded it". This run re-verified the booking still existed immediately after the last query below.
 
@@ -271,7 +271,7 @@ TC-FILTER-002 (checkin and checkout both equal to the booking's own dates) fails
 
 **Severity:** Low
 **Affected cases:** TC-CREATE-006, TC-CREATE-008, TC-FILTER-003, TC-AUTH-003
-**Issue:** [#6](https://github.com/m-batuhans/restful-booker-api-tests/issues/6)
+**Issue:** [#7](https://github.com/m-batuhans/restful-booker-api-tests/issues/7)
 
 Four different kinds of invalid input, all accepted with 200 instead of being rejected.
 
