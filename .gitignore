@@ -25,3 +25,6 @@ venv/
 # Local secrets
 config.properties
 .env
+
+# Scratch files used while drafting GitHub issue bodies
+issue*.md
